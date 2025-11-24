@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway_service/Dockerfile
+    env_file:
+      - ./apps/api-gateway_service/.env.example
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8787:8000"
+    depends_on:
+      # Add db/supabase-emulator services here when configured
+      []
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./apps/worker-orchestrator_service/Dockerfile
+    env_file:
+      - ./apps/worker-orchestrator_service/.env.example
+    command: python -m app.main
+    depends_on:
+      - api-gateway
+      # Add db/supabase-emulator services here when configured
+
+  parser-proxy:
+    build:
+      context: .
+      dockerfile: ./apps/parser-proxy_service/Dockerfile
+    env_file:
+      - ./apps/parser-proxy_service/.env.example
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8010
+    ports:
+      - "8790:8010"
+    depends_on:
+      - api-gateway
+      # Add db/supabase-emulator services here when configured
+
+# TODO: Add local Postgres/Supabase emulator, Pinecone mock, and shared network/volumes as needed.

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shared"
+version = "0.0.1"
+description = "Shared utilities for SmartResume Match services"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.2,<3",
+  "python-dotenv>=1.0,<2",
+  "httpx>=0.25,<1",
+  "python-jose[cryptography]>=3.3,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4,<8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

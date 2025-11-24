@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.Python
+env/
+venv/
+.venv/
+pip-wheel-metadata/
+
+# Packaging
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+
+# Env files
+.env
+.env.local
+.env.*.local
