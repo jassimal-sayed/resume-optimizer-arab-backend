@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Gateway
+    participant Orchestrator
+    participant LLM
+    participant Database
+    
+    User->>Frontend: Upload Resume + Job Description
+    Frontend->>Gateway: POST /jobs (JWT Token)
+    Gateway->>Gateway: Validate JWT
+    Gateway->>Orchestrator: POST /internal/jobs
+    Orchestrator->>Database: Create Job Record
+    Orchestrator->>Database: Enqueue Task
+    Orchestrator-->>Gateway: {job_id, status: "queued"}
+    Gateway-->>Frontend: {job_id}
+    
+    Note over Orchestrator: Background Worker
+    Orchestrator->>Database: Poll Task Queue
+    Orchestrator->>LLM: Generate Optimization
+    LLM-->>Orchestrator: Optimization Result
+    Orchestrator->>Database: Save Result, Update Status
+    
+    Frontend->>Gateway: GET /jobs/{id}
+    Gateway->>Orchestrator: GET /internal/jobs/{id}
+    Orchestrator->>Database: Fetch Job + Result
+    Orchestrator-->>Gateway: {job, result}
+    Gateway-->>Frontend: Optimized Resume

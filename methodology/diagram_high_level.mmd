@@ -1,0 +1,30 @@
+flowchart TB
+    subgraph "Client Layer"
+        FE[React Frontend]
+    end
+    
+    subgraph "API Layer"
+        GW[Gateway Service]
+    end
+    
+    subgraph "Business Logic Layer"
+        ORCH[Orchestrator Service]
+        PARSER[Parser Service]
+    end
+    
+    subgraph "Data Layer"
+        DB[(PostgreSQL)]
+        STORAGE[File Storage]
+    end
+    
+    subgraph "External Services"
+        LLM[LLM Providers]
+    end
+    
+    FE -->|REST API| GW
+    GW -->|Internal HTTP| ORCH
+    GW -->|Internal HTTP| PARSER
+    ORCH -->|SQL| DB
+    ORCH -->|API Calls| LLM
+    PARSER -->|File Read| STORAGE
+    FE -->|Auth| AUTH[Supabase Auth]

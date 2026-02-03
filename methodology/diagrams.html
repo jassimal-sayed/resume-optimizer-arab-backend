@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartResume Match - Architecture Diagrams</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        body { font-family: system-ui; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .diagram { background: white; padding: 2rem; margin: 2rem 0; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>System Architecture Diagrams</h1>
+    <p><strong>Tip:</strong> Right-click on any diagram → "Save Image As" to download as PNG.</p>
+
+    <div class="diagram">
+        <h2>1. High-Level Architecture</h2>
+        <pre class="mermaid">
+flowchart TB
+    subgraph Client["Client Layer"]
+        FE[React Frontend]
+    end
+    subgraph API["API Layer"]
+        GW[Gateway Service]
+    end
+    subgraph Business["Business Logic Layer"]
+        ORCH[Orchestrator Service]
+        PARSER[Parser Service]
+    end
+    subgraph Data["Data Layer"]
+        DB[(PostgreSQL)]
+        STORAGE[File Storage]
+    end
+    subgraph External["External Services"]
+        LLM[LLM Providers]
+    end
+    FE -->|REST API| GW
+    GW -->|Internal HTTP| ORCH
+    GW -->|Internal HTTP| PARSER
+    ORCH -->|SQL| DB
+    ORCH -->|API Calls| LLM
+    PARSER -->|File Read| STORAGE
+    FE -->|Auth| AUTH[Supabase Auth]
+        </pre>
+    </div>
+
+    <div class="diagram">
+        <h2>2. Service Architecture</h2>
+        <pre class="mermaid">
+flowchart LR
+    subgraph GW["Gateway Service"]
+        AUTH_MW[Auth Middleware]
+        RATE[Rate Limiter]
+        PROXY[HTTP Proxy]
+    end
+    subgraph ORCH["Orchestrator Service"]
+        API[Internal API]
+        WORKER[Background Worker]
+        REPO[Repository Layer]
+    end
+    subgraph LIBS["Shared Libraries"]
+        LIB_AUTH[libs/auth]
+        LIB_COMMON[libs/common]
+        LIB_DB[libs/db]
+        LIB_AI[libs/ai]
+    end
+    AUTH_MW --> RATE --> PROXY
+    PROXY -->|HTTP| API
+    API --> REPO
+    WORKER --> REPO
+    WORKER -->|LLM Calls| LIB_AI
+    REPO --> LIB_DB
+        </pre>
+    </div>
+
+    <div class="diagram">
+        <h2>3. Request Flow</h2>
+        <pre class="mermaid">
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Gateway
+    participant Orchestrator
+    participant LLM
+    participant Database
+    User->>Frontend: Upload Resume + Job Description
+    Frontend->>Gateway: POST /jobs (JWT Token)
+    Gateway->>Gateway: Validate JWT
+    Gateway->>Orchestrator: POST /internal/jobs
+    Orchestrator->>Database: Create Job Record
+    Orchestrator->>Database: Enqueue Task
+    Orchestrator-->>Gateway: job_id, status queued
+    Gateway-->>Frontend: job_id
+    Note over Orchestrator: Background Worker
+    Orchestrator->>Database: Poll Task Queue
+    Orchestrator->>LLM: Generate Optimization
+    LLM-->>Orchestrator: Optimization Result
+    Orchestrator->>Database: Save Result
+    Frontend->>Gateway: GET /jobs/id
+    Gateway->>Orchestrator: GET /internal/jobs/id
+    Orchestrator->>Database: Fetch Job + Result
+    Orchestrator-->>Gateway: job, result
+    Gateway-->>Frontend: Optimized Resume
+        </pre>
+    </div>
+
+    <div class="diagram">
+        <h2>4. Database ERD</h2>
+        <pre class="mermaid">
+erDiagram
+    USERS ||--o{ RESUMES : owns
+    USERS ||--o{ JOBS : creates
+    RESUMES ||--o{ RESUME_VERSIONS : has
+    JOBS ||--o{ OPTIMIZATIONS : produces
+    RESUME_VERSIONS ||--o{ OPTIMIZATIONS : uses
+    USERS {
+        uuid id PK
+        string email
+        timestamp created_at
+    }
+    RESUMES {
+        uuid id PK
+        uuid user_id FK
+        string title
+        string source
+    }
+    JOBS {
+        uuid id PK
+        uuid user_id FK
+        string title
+        text job_description
+        enum status
+    }
+    OPTIMIZATIONS {
+        uuid id PK
+        uuid job_id FK
+        int score
+        json report
+    }
+    TASK_QUEUE {
+        uuid id PK
+        enum task_type
+        json payload
+        enum status
+    }
+        </pre>
+    </div>
+</body>
+</html>

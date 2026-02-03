@@ -1,24 +1,54 @@
-# Python
+# Python artifacts
 __pycache__/
 *.py[cod]
-.Python
-env/
-venv/
-.venv/
-pip-wheel-metadata/
+*.so
+*.pyd
 
-# Packaging
-*.egg
-*.egg-info/
+# Virtual environments
+.venv/
+venv/
+env/
+.envrc
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.prod.gpg
+!.env.dev.gpg
+
+# Packaging / build output
 dist/
 build/
+*.egg-info/
+.python-version
 
-# Editor/OS
+# Coverage / test artifacts
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# IDE / editor files
 .DS_Store
 .idea/
 .vscode/
+*.code-workspace
 
-# Env files
-.env
-.env.local
-.env.*.local
+# Logs and temp files
+*.log
+logs/
+tmp/
+*.tmp
+
+# Type checker caches
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# Docker / Compose
+*.pid
+docker-compose.override.yml
+
+# MCP / tooling artifacts
+*.mcp.cache

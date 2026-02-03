@@ -1,0 +1,46 @@
+erDiagram
+    USERS ||--o{ RESUMES : owns
+    USERS ||--o{ JOBS : creates
+    RESUMES ||--o{ RESUME_VERSIONS : has
+    JOBS ||--o{ OPTIMIZATIONS : produces
+    RESUME_VERSIONS ||--o{ OPTIMIZATIONS : uses
+    
+    USERS {
+        uuid id PK
+        string email
+        timestamp created_at
+    }
+    
+    RESUMES {
+        uuid id PK
+        uuid user_id FK
+        string title
+        string source
+        timestamp created_at
+    }
+    
+    JOBS {
+        uuid id PK
+        uuid user_id FK
+        string title
+        text job_description
+        enum status
+        timestamp created_at
+    }
+    
+    OPTIMIZATIONS {
+        uuid id PK
+        uuid job_id FK
+        uuid resume_version_id FK
+        int score
+        json report
+        text preview_md
+    }
+    
+    TASK_QUEUE {
+        uuid id PK
+        enum task_type
+        json payload
+        enum status
+        int attempts
+    }

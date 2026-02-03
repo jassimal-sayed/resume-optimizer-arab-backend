@@ -1,41 +1,74 @@
-version: "3.9"
-
 services:
-  api-gateway:
+  # ==================================================================
+  # DOMAIN MICROSERVICES
+  # ==================================================================
+
+  orchestrator-service:
     build:
       context: .
-      dockerfile: ./apps/api-gateway_service/Dockerfile
+      dockerfile: services/orchestrator_service/Dockerfile
+    container_name: optimizer_orchestrator
     env_file:
-      - ./apps/api-gateway_service/.env.example
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+      - .env.dev
     ports:
-      - "8787:8000"
-    depends_on:
-      # Add db/supabase-emulator services here when configured
-      []
+      - "8001:8001"
+    volumes:
+      - .:/app
 
-  worker:
+  parser-service:
     build:
       context: .
-      dockerfile: ./apps/worker-orchestrator_service/Dockerfile
+      dockerfile: services/parser_service/Dockerfile
+    container_name: optimizer_parser
     env_file:
-      - ./apps/worker-orchestrator_service/.env.example
-    command: python -m app.main
-    depends_on:
-      - api-gateway
-      # Add db/supabase-emulator services here when configured
-
-  parser-proxy:
-    build:
-      context: .
-      dockerfile: ./apps/parser-proxy_service/Dockerfile
-    env_file:
-      - ./apps/parser-proxy_service/.env.example
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8010
+      - .env.dev
     ports:
-      - "8790:8010"
-    depends_on:
-      - api-gateway
-      # Add db/supabase-emulator services here when configured
+      - "8002:8002"
+    volumes:
+      - .:/app
 
-# TODO: Add local Postgres/Supabase emulator, Pinecone mock, and shared network/volumes as needed.
+  gateway-service:
+    build:
+      context: .
+      dockerfile: services/gateway_service/Dockerfile
+    container_name: optimizer_gateway
+    env_file:
+      - .env.dev
+    ports:
+      - "8000:8000"
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator-service:8001
+      - PARSER_URL=http://parser-service:8002
+    depends_on:
+      orchestrator-service:
+        condition: service_started
+      parser-service:
+        condition: service_started
+    command: >
+      uvicorn services.gateway_service.app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+    volumes:
+      - .:/app
+
+  # ==================================================================
+  # INFRASTRUCTURE
+  # ==================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: optimizer_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  optimizer_db_data:
+  redis_data:

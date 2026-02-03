@@ -1,0 +1,10 @@
+{
+  "title": "Senior Python Developer",
+  "company": "Tech Corp",
+  "resume_text": "Experienced Python developer with 5 years of experience in FastAPI and Docker.",
+  "job_description": "We are looking for a Senior Python Developer with experience in FastAPI, Docker, and Microservices.",
+  "custom_instructions": "Focus on backend skills.",
+  "resume_lang": "en",
+  "jd_lang": "en",
+  "desired_output_lang": "en"
+}

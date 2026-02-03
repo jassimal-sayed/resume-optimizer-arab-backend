@@ -50,18 +50,18 @@ Roadmap (sequenced, agent-friendly; mark [ ] → [~] → [x]):
 
 ### Phase C – API Gateway (FastAPI)
 
-- **ID:** B3 — Status: [ ] — Resume ingestion routes
-  - [ ] Scaffold FastAPI app with CORS for `FRONTEND_ORIGIN`, healthcheck.
-  - [ ] Routes: `POST /resumes/upload` (multipart file + title → Supabase Storage signed URL + row + task_queue embed_resume), `POST /resumes/from-text` (title + raw_text → resume + version + enqueue embed), `POST /callbacks/n8n/resume` (X-Workflow-Token guard → update resume_version parsed_json/raw_text + enqueue embed).
-  - [ ] Responses follow `{ data, error }`; ownership check via `user_id`.
-  - [ ] TODO markers for storage bucket names and table names if not final.
-- **ID:** B4 — Status: [ ] — Job ingest + lifecycle
-  - [ ] Routes: `POST /jobs`, `GET /jobs`, `GET /jobs/{id}`, `POST /jobs/{id}/refine`, `POST /callbacks/n8n/job`.
-  - [ ] Persist language metadata (`resume_lang`, `jd_lang`, `desired_output_lang`); derive title fallback per `API_DESIGN.md`.
-  - [ ] On create/refine, enqueue optimize task; on callback, enqueue embed_job; always enforce user ownership.
-  - [ ] Envelope responses and error handling; pagination for list.
-- **ID:** B5 — Status: [ ] — Optimization result surface
-  - [ ] Ensure job detail includes latest `result` (joins `optimizations`).
+- **ID:** B3 — Status: [x] — Resume ingestion routes
+  - [x] Scaffold FastAPI app with CORS for `FRONTEND_ORIGIN`, healthcheck.
+  - [x] Routes: `POST /resumes/upload` (multipart file + title → Supabase Storage signed URL + row + task_queue embed_resume), `POST /resumes/from-text` (title + raw_text → resume + version + enqueue embed), `POST /callbacks/n8n/resume` (X-Workflow-Token guard → update resume_version parsed_json/raw_text + enqueue embed).
+  - [x] Responses follow `{ data, error }`; ownership check via `user_id`.
+  - [x] TODO markers for storage bucket names and table names if not final.
+- **ID:** B4 — Status: [x] — Job ingest + lifecycle
+  - [x] Routes: `POST /jobs`, `GET /jobs`, `GET /jobs/{id}`, `POST /jobs/{id}/refine`, `POST /callbacks/n8n/job`.
+  - [x] Persist language metadata (`resume_lang`, `jd_lang`, `desired_output_lang`); derive title fallback per `API_DESIGN.md`.
+  - [x] On create/refine, enqueue optimize task; on callback, enqueue embed_job; always enforce user ownership.
+  - [x] Envelope responses and error handling; pagination for list.
+- **ID:** B5 — Status: [~] — Optimization result surface
+  - [x] Ensure job detail includes latest `result` (joins `optimizations`).
   - [ ] Endpoint `POST /resumes/{resume_id}/optimize` (if kept) proxies to task enqueue; document any overlap with `/jobs`.
   - [ ] Wire OpenAPI docs with Pydantic schemas from `packages/shared`.
 

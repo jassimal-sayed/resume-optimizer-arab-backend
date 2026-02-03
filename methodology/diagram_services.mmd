@@ -1,0 +1,26 @@
+flowchart LR
+    subgraph "Gateway Service"
+        AUTH_MW[Auth Middleware]
+        RATE[Rate Limiter]
+        PROXY[HTTP Proxy]
+    end
+    
+    subgraph "Orchestrator Service"
+        API[Internal API]
+        WORKER[Background Worker]
+        REPO[Repository Layer]
+    end
+    
+    subgraph "Shared Libraries"
+        LIB_AUTH[libs/auth]
+        LIB_COMMON[libs/common]
+        LIB_DB[libs/db]
+        LIB_AI[libs/ai]
+    end
+    
+    AUTH_MW --> RATE --> PROXY
+    PROXY -->|HTTP| API
+    API --> REPO
+    WORKER --> REPO
+    WORKER -->|LLM Calls| LIB_AI
+    REPO --> LIB_DB
