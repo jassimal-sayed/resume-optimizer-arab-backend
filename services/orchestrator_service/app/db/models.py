@@ -16,7 +16,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -182,7 +182,7 @@ class TaskQueue(Base):
     task_type: Mapped[TaskTypeEnum] = mapped_column(
         Enum(TaskTypeEnum, name="task_type_enum"), nullable=False
     )
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
     status: Mapped[TaskStatusEnum] = mapped_column(
         Enum(TaskStatusEnum, name="task_status_enum"),
         nullable=False,
