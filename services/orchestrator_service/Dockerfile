@@ -2,17 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy project metadata
-COPY pyproject.toml README.md /app/
+# Install service dependencies only (avoid parser/OCR-heavy deps).
+COPY services/orchestrator_service/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Copy ALL libs
+# Copy app code
 COPY libs/ /app/libs/
-
-# Copy Service Code
 COPY services/orchestrator_service/ /app/services/orchestrator_service/
-
-# Install dependencies
-RUN pip install --no-cache-dir -e .
 
 ENV PYTHONPATH=/app
 EXPOSE 8001

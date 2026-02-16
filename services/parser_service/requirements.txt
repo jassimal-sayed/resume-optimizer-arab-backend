@@ -1,6 +1,8 @@
-fastapi
-uvicorn[standard]
-python-multipart
-pymupdf
-python-docx
-easyocr
+fastapi>=0.109,<0.112
+uvicorn[standard]>=0.27,<0.30
+python-multipart>=0.0.6,<0.1.0
+pymupdf>=1.24,<1.25
+python-docx>=1.1,<2.0
+# EasyOCR pulls large torch/cuda wheels and can exhaust small droplets.
+# Keep OCR optional for production; extractor gracefully falls back.
+# easyocr>=1.7,<2.0

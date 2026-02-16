@@ -98,6 +98,8 @@ jobs:
             cd /root/resume-optimizer-arab-backend
 
             docker compose -f docker-compose.prod.yml down
+            docker builder prune -af || true
+            docker image prune -af || true
             docker compose -f docker-compose.prod.yml build orchestrator-service
             docker compose -f docker-compose.prod.yml build parser-service
             docker compose -f docker-compose.prod.yml build gateway-service
