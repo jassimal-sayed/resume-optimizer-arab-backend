@@ -16,7 +16,7 @@ jobs:
           echo "${{ secrets.ENV_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --decrypt .env.prod.gpg > .env.prod
 
       - name: Copy files via scp
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
@@ -25,7 +25,7 @@ jobs:
           target: "/root/resume-optimizer-arab-backend"
 
       - name: Deploy with Docker Compose
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
