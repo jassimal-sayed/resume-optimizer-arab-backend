@@ -7,6 +7,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      DO_SSH_HOST: ${{ secrets.DO_HOST }}
+      DO_SSH_USERNAME: ${{ secrets.DO_USERNAME != '' && secrets.DO_USERNAME || 'root' }}
+      DO_SSH_PORT: ${{ secrets.DO_PORT != '' && secrets.DO_PORT || '22' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -15,30 +19,64 @@ jobs:
         run: |
           echo "${{ secrets.ENV_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --decrypt .env.prod.gpg > .env.prod
 
-      - name: Decode SSH Key
+      - name: Prepare SSH Key
         id: ssh_key
         run: |
+          set -euo pipefail
+          KEY_INPUT="${{ secrets.DO_SSH_KEY }}"
+
+          # Support either a raw PEM key secret or a base64-encoded key secret.
+          if printf '%s' "$KEY_INPUT" | grep -q "BEGIN .*PRIVATE KEY"; then
+            KEY_CONTENT="$KEY_INPUT"
+          else
+            KEY_CONTENT="$(printf '%s' "$KEY_INPUT" | base64 --decode)"
+          fi
+
+          # Normalize potential CRLF line endings from copied secrets.
+          KEY_FILE="$RUNNER_TEMP/do_deploy_key"
+          printf '%s\n' "$KEY_CONTENT" | sed 's/\r$//' > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          # Fail early if the key is malformed.
+          ssh-keygen -y -f "$KEY_FILE" > /dev/null
+
           {
             echo "key<<EOF"
-            echo "${{ secrets.DO_SSH_KEY }}" | base64 -d
+            cat "$KEY_FILE"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Verify SSH connection
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.DO_SSH_HOST }}
+          username: ${{ env.DO_SSH_USERNAME }}
+          port: ${{ env.DO_SSH_PORT }}
+          key: ${{ steps.ssh_key.outputs.key }}
+          passphrase: ${{ secrets.DO_SSH_PASSPHRASE }}
+          script: |
+            whoami
+            hostname
 
       - name: Copy files via scp
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USERNAME }}
+          host: ${{ env.DO_SSH_HOST }}
+          username: ${{ env.DO_SSH_USERNAME }}
+          port: ${{ env.DO_SSH_PORT }}
           key: ${{ steps.ssh_key.outputs.key }}
+          passphrase: ${{ secrets.DO_SSH_PASSPHRASE }}
           source: "./*,.env.prod"
           target: "/root/resume-optimizer-arab-backend"
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USERNAME }}
+          host: ${{ env.DO_SSH_HOST }}
+          username: ${{ env.DO_SSH_USERNAME }}
+          port: ${{ env.DO_SSH_PORT }}
           key: ${{ steps.ssh_key.outputs.key }}
+          passphrase: ${{ secrets.DO_SSH_PASSPHRASE }}
           script: |
             cd /root/resume-optimizer-arab-backend
             docker compose -f docker-compose.prod.yml down
