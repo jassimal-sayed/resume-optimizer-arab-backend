@@ -18,15 +18,15 @@ jobs:
       - name: Decode SSH Key
         run: |
           mkdir -p ~/.ssh/
-          echo "${{ secrets.DO_SSH_KEY }}" | base64 -d > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DO_SSH_KEY }}" | base64 -d > id_ed25519
+          chmod 600 id_ed25519
 
       - name: Copy files via scp
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
-          key_path: ~/.ssh/id_ed25519
+          key_path: id_ed25519
           source: "."
           target: "/root/resume-optimizer-arab-backend"
 
@@ -35,7 +35,7 @@ jobs:
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
-          key_path: ~/.ssh/id_ed25519
+          key_path: id_ed25519
           script: |
             cd /root/resume-optimizer-arab-backend
             docker compose -f docker-compose.prod.yml down
