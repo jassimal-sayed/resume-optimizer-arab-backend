@@ -58,11 +58,11 @@ services:
       - PARSER_URL=http://parser-service:8002
     labels:
       - traefik.enable=true
-      - traefik.http.routers.resume-api-http.rule=Host(`arab-resume.kgents.com`)
+      - traefik.http.routers.resume-api-http.rule=Host(`arab-resumes.kgents.com`)
       - traefik.http.routers.resume-api-http.entrypoints=web
       - traefik.http.routers.resume-api-http.middlewares=resume-api-redirect
       - traefik.http.middlewares.resume-api-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.resume-api.rule=Host(`arab-resume.kgents.com`)
+      - traefik.http.routers.resume-api.rule=Host(`arab-resumes.kgents.com`)
       - traefik.http.routers.resume-api.entrypoints=websecure
       - traefik.http.routers.resume-api.tls=true
       - traefik.http.routers.resume-api.tls.certresolver=le
