@@ -85,7 +85,21 @@ jobs:
           key: ${{ steps.ssh_key.outputs.key }}
           passphrase: ${{ secrets.DO_SSH_PASSPHRASE }}
           script: |
+            set -euo pipefail
+
+            # Small droplets can OOM during image builds; ensure swap exists.
+            if [ ! -f /swapfile ]; then
+              fallocate -l 1G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=1024
+              chmod 600 /swapfile
+              mkswap /swapfile
+            fi
+            swapon /swapfile || true
+
             cd /root/resume-optimizer-arab-backend
+
             docker compose -f docker-compose.prod.yml down
-            docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
-            docker system prune -f
+            docker compose -f docker-compose.prod.yml build orchestrator-service
+            docker compose -f docker-compose.prod.yml build parser-service
+            docker compose -f docker-compose.prod.yml build gateway-service
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
