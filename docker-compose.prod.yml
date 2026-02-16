@@ -6,6 +6,8 @@ services:
   traefik:
     image: traefik:v3.1
     container_name: optimizer_traefik
+    environment:
+      - DOCKER_API_VERSION=1.44
     command:
       - --api.dashboard=false
       - --providers.docker=true
