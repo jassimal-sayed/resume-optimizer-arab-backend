@@ -1,0 +1,29 @@
+http:
+  routers:
+    resume-api-http:
+      rule: "Host(`arab-resumes.kgents.com`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: resume-api
+
+    resume-api:
+      rule: "Host(`arab-resumes.kgents.com`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: le
+      service: resume-api
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+
+  services:
+    resume-api:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://gateway-service:8000"
