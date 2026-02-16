@@ -29,6 +29,7 @@ jobs:
           key_path: id_ed25519
           source: "."
           target: "/root/resume-optimizer-arab-backend"
+          exclude: "id_ed25519, .git, .github, .env.prod.gpg, .gitignore"
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v1.0.3
