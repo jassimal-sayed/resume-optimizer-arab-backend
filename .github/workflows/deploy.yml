@@ -16,27 +16,29 @@ jobs:
           echo "${{ secrets.ENV_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --decrypt .env.prod.gpg > .env.prod
 
       - name: Decode SSH Key
+        id: ssh_key
         run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.DO_SSH_KEY }}" | base64 -d > id_ed25519
-          chmod 600 id_ed25519
+          {
+            echo "key<<EOF"
+            echo "${{ secrets.DO_SSH_KEY }}" | base64 -d
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Copy files via scp
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
-          key_path: id_ed25519
-          source: "."
+          key: ${{ steps.ssh_key.outputs.key }}
+          source: "./*,.env.prod"
           target: "/root/resume-optimizer-arab-backend"
-          exclude: "id_ed25519, .git, .github, .env.prod.gpg, .gitignore"
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
-          key_path: id_ed25519
+          key: ${{ steps.ssh_key.outputs.key }}
           script: |
             cd /root/resume-optimizer-arab-backend
             docker compose -f docker-compose.prod.yml down
