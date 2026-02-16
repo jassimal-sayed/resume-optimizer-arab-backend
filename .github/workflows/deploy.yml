@@ -39,12 +39,19 @@ jobs:
 
           # Fail early if the key is malformed.
           ssh-keygen -y -f "$KEY_FILE" > /dev/null
+          echo "Loaded deploy key fingerprint:"
+          ssh-keygen -lf "$KEY_FILE"
 
           {
             echo "key<<EOF"
             cat "$KEY_FILE"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Show SSH target
+        run: |
+          echo "SSH user: $DO_SSH_USERNAME"
+          echo "SSH port: $DO_SSH_PORT"
 
       - name: Verify SSH connection
         uses: appleboy/ssh-action@v1.0.3
