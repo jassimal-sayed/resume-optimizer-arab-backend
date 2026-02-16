@@ -3,6 +3,27 @@ services:
   # DOMAIN MICROSERVICES
   # ==================================================================
 
+  traefik:
+    image: traefik:v3.1
+    container_name: optimizer_traefik
+    command:
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.email=admin@kgents.com
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    restart: always
+
   orchestrator-service:
     build:
       context: .
@@ -32,11 +53,20 @@ services:
     container_name: optimizer_gateway
     env_file:
       - .env.prod
-    ports:
-      - "80:8000"  # Expose Gateway on Port 80
     environment:
       - ORCHESTRATOR_URL=http://orchestrator-service:8001
       - PARSER_URL=http://parser-service:8002
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.resume-api-http.rule=Host(`arab-resume.kgents.com`)
+      - traefik.http.routers.resume-api-http.entrypoints=web
+      - traefik.http.routers.resume-api-http.middlewares=resume-api-redirect
+      - traefik.http.middlewares.resume-api-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.resume-api.rule=Host(`arab-resume.kgents.com`)
+      - traefik.http.routers.resume-api.entrypoints=websecure
+      - traefik.http.routers.resume-api.tls=true
+      - traefik.http.routers.resume-api.tls.certresolver=le
+      - traefik.http.services.resume-api.loadbalancer.server.port=8000
     depends_on:
       orchestrator-service:
         condition: service_started
@@ -68,3 +98,4 @@ services:
 
 volumes:
   redis_data:
+  traefik_letsencrypt:
