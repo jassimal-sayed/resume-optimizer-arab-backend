@@ -10,7 +10,7 @@ router = APIRouter(tags=["parser"])
 async def extract_from_file(file: UploadFile = File(...)):
     """
     Extract text from uploaded PDF or DOCX file.
-    Falls back to OCR if text extraction yields minimal content.
+    Falls back to OCR if text extraction yields minimal content
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
