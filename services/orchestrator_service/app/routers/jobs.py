@@ -123,6 +123,8 @@ async def update_job(
     if not job:
         raise HTTPException(status_code=404, detail=envelope_error("Job not found"))
     await db.commit()
+    # Refresh to load server-updated fields (updated_at)
+    job = await repo.get_job_for_user(payload.user_id, job_id)
     return {"data": {"job": serialize_job(job)}, "error": None}
 
 
