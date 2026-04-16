@@ -30,6 +30,13 @@ class RefineJobRequest(BaseModel):
     desired_output_lang: Optional[str] = Field(default=None, pattern="^(en|ar)$")
 
 
+class UpdateJobRequest(BaseModel):
+    """Request schema for updating a job."""
+
+    user_id: str
+    title: str
+
+
 class JobResponse(BaseModel):
     """Response schema with camelCase field names for frontend compatibility."""
 

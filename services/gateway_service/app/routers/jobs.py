@@ -33,13 +33,19 @@ async def proxy_to_orchestrator(
             if method == "GET":
                 response = await client.get(url, params=params)
             elif method == "POST":
-                # Include user_id in body for POST
                 if json_body:
                     json_body["user_id"] = user_id
                 else:
                     json_body = {"user_id": user_id}
-                print(f"DEBUG: Proxying POST to {url}")
                 response = await client.post(url, json=json_body)
+            elif method == "DELETE":
+                response = await client.delete(url, params=params)
+            elif method == "PATCH":
+                if json_body:
+                    json_body["user_id"] = user_id
+                else:
+                    json_body = {"user_id": user_id}
+                response = await client.patch(url, json=json_body)
             else:
                 raise ValueError(f"Unsupported method: {method}")
 
@@ -75,6 +81,24 @@ async def list_jobs(user_id: str = Depends(get_current_user_id)):
 @router.get("/{job_id}", response_model=dict)
 async def get_job(job_id: str, user_id: str = Depends(get_current_user_id)):
     return await proxy_to_orchestrator("GET", f"/jobs/{job_id}", user_id)
+
+
+class UpdateJobRequest(BaseModel):
+    """Request schema for updating job title."""
+
+    title: str
+
+
+@router.delete("/{job_id}", response_model=dict)
+async def delete_job(job_id: str, user_id: str = Depends(get_current_user_id)):
+    return await proxy_to_orchestrator("DELETE", f"/jobs/{job_id}", user_id)
+
+
+@router.patch("/{job_id}", response_model=dict)
+async def update_job(
+    job_id: str, payload: UpdateJobRequest, user_id: str = Depends(get_current_user_id)
+):
+    return await proxy_to_orchestrator("PATCH", f"/jobs/{job_id}", user_id, payload.model_dump())
 
 
 class RefineJobRequest(BaseModel):

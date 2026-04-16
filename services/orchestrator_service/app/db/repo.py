@@ -167,6 +167,21 @@ class Repository:
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
+    async def delete_job_for_user(self, user_id: str, job_id: str) -> bool:
+        job = await self.get_job_for_user(user_id, job_id)
+        if not job:
+            return False
+        await self.session.delete(job)
+        return True
+
+    async def update_job_title(self, user_id: str, job_id: str, title: str) -> Optional[Job]:
+        job = await self.get_job_for_user(user_id, job_id)
+        if not job:
+            return None
+        job.title = title
+        await self.session.flush()
+        return job
+
     async def get_task_for_job(self, job_id: str) -> Optional[TaskQueue]:
         """Get the original task for a job to retrieve resume_text for refinement."""
         # Find task where payload contains this job_id

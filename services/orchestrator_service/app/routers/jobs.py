@@ -13,6 +13,7 @@ from ..schemas.job_schemas import (
     JobResponse,
     OptimizationResultResponse,
     RefineJobRequest,
+    UpdateJobRequest,
 )
 
 router = APIRouter(tags=["orchestrator"])
@@ -101,6 +102,28 @@ async def get_job(job_id: str, user_id: str, db: AsyncSession = Depends(get_asyn
     job_dict["result"] = result
 
     return {"data": {"job": job_dict}, "error": None}
+
+
+@router.delete("/jobs/{job_id}", response_model=dict)
+async def delete_job(job_id: str, user_id: str, db: AsyncSession = Depends(get_async_db)):
+    repo = Repository(db)
+    deleted = await repo.delete_job_for_user(user_id, job_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=envelope_error("Job not found"))
+    await db.commit()
+    return {"data": None, "error": None}
+
+
+@router.patch("/jobs/{job_id}", response_model=dict)
+async def update_job(
+    job_id: str, payload: UpdateJobRequest, db: AsyncSession = Depends(get_async_db)
+):
+    repo = Repository(db)
+    job = await repo.update_job_title(payload.user_id, job_id, payload.title)
+    if not job:
+        raise HTTPException(status_code=404, detail=envelope_error("Job not found"))
+    await db.commit()
+    return {"data": {"job": serialize_job(job)}, "error": None}
 
 
 @router.post("/jobs/{job_id}/refine", response_model=dict)
