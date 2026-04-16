@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import desc, select, update
+from sqlalchemy import delete, desc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import (
@@ -171,6 +171,14 @@ class Repository:
         job = await self.get_job_for_user(user_id, job_id)
         if not job:
             return False
+        # Delete related optimizations
+        await self.session.execute(
+            delete(Optimization).where(Optimization.job_id == job_id)
+        )
+        # Delete related tasks
+        await self.session.execute(
+            delete(TaskQueue).where(TaskQueue.payload["job_id"].astext == job_id)
+        )
         await self.session.delete(job)
         return True
 
