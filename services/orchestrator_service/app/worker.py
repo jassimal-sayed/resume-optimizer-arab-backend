@@ -50,6 +50,13 @@ async def process_task(task: dict, optimizer: ResumeOptimizer, db_session):
         )
 
         await repo.update_job_status(job_id, JobStatusEnum.complete)
+
+        from .db.models import TaskQueue, TaskStatusEnum
+
+        task_row = await db_session.get(TaskQueue, task_id)
+        if task_row:
+            task_row.status = TaskStatusEnum.complete
+
         await db_session.commit()
 
         logger.info(
